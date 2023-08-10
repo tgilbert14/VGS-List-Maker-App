@@ -51,8 +51,8 @@ server <- function(input, output) {
   observeEvent(input$create, {
     
     output$status <- renderText({
-      source("C:/Users/tsgil/OneDrive/Documents/VGS/Functions/VGS_functions_R.R", local = T)
-      source("C:/Users/tsgil/OneDrive/Documents/VGS/Functions/list_creator.R", local = T)
+      source("Functions/VGS_functions_R.R", local = T)
+      source("Functions/list_creator.R", local = T)
       
       create_list(listName = input$list_name, IsHierarchical = input$list_type, spFilterType = input$species_type, description = input$list_decription)
       
