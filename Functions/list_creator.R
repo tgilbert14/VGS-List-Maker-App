@@ -95,7 +95,7 @@ create_list <- function(listName = "vgs_list", spFilterType = "OT", description 
   ## ID GUID for species insert ------------------------------------------------
   Pk_Species <- GUID(type = "sp", number_of_GUIDS = nrow(list_data))
   Pk_Species <- paste0(pre_guid, Pk_Species)
-  
+
   ## ID GUID for species links insert ------------------------------------------
   Pk_SpListLink <- GUID(type = "pk", number_of_GUIDS = nrow(list_data))
   

@@ -13,6 +13,7 @@ db_loc <<- "C:/ProgramData/VGSData/VGS50.db"
 mydb <<- dbConnect(RSQLite::SQLite(), dbname = db_loc)
 ## -----------------------------------------------------------------------------
 
+
 ## GUID creation function ------------------------------------------------------
 GUID <- function(type='pk', number_of_GUIDS=1) {
   ## generate generic GUID

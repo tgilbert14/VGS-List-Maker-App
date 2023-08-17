@@ -2,9 +2,11 @@
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
+library(shinycssloaders)
 
+## Create function to create GUID for VGS
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-  
 # Define UI for application that draws a histogram
 ui <- fluidPage(theme = shinytheme("united"),collapsable = TRUE,
 
@@ -12,45 +14,38 @@ ui <- fluidPage(theme = shinytheme("united"),collapsable = TRUE,
                 titlePanel(" VGS List Maker", windowTitle = T),
                 
                 tags$style('.container-fluid {
-                             background-color: #007BA1;
+                             background-color: teal;
               }'),
                 
-                # dashboardBody(
-                #   
-                #   # tags$img(
-                #   #   src = "https://portal.dev.vgs.arizona.edu/Content/Images/Headshots/csperry.jpg",
-                #   #   style = "position:absolute;left:400px;",
-                #   #   width = "420px", height = "400px"),
-                # 
-                #   # tags$audio(src = "Nice.mp3", type = "audio/mp3", autoplay = T,
-                #   #            controls = NA, style = "position:absolute;left:450px;"),
-                # 
-                # ),
                 # Sidebar with a slider input for number of bins 
                 sidebarLayout(
                   sidebarPanel(
                     #shiny::fileInput(inputId = "data_file", label = "Choose a list to create", accept = ".csv", multiple = F, placeholder = "vgs_list.csv"),
-                    shiny::textInput(inputId = "list_name", label = "List Name", placeholder = "list name"),
+                    shiny::textInput(inputId = "list_name", label = "List Name", placeholder = "list name", value = NULL),
                     shiny::selectInput(inputId = "list_type", label = "List Type", choices = c("Normal list"=0, "Hierarchical list"=1), multiple = F, selected = F),
                     shiny::selectInput(inputId = "species_type", label = "Filter Type", choices = c("Other"="OT","GroundCover"="GC"), multiple = F, selected = F),
-                    shiny::textInput(inputId = "list_decription", label = "Description", value = "NULL", placeholder = "type list decription here if needed"),
+                    shiny::textInput(inputId = "list_decription", label = "Description", value = NULL, placeholder = "type list decription here if needed"),
                     shiny::actionButton(inputId = "create", label = "Create List")
                   ),
                   
                   # 
                   mainPanel(
-                    shiny::textOutput("status")
+                    withSpinner(textOutput("status"))
                   )
                 )
                 
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, session, output) {
+  
+  ## initial NULL value to stop spinner at start
+  output$status <- renderText(NULL)
   
   observeEvent(input$create, {
-    
+    req(input$list_name)
     output$status <- renderText({
+      
       source("Functions/VGS_functions_R.R", local = T)
       source("Functions/list_creator.R", local = T)
       
@@ -103,9 +98,19 @@ server <- function(input, output) {
                src = "https://portal.dev.vgs.arizona.edu/Content/Images/Headshots/csperry.jpg",
                style = "position:absolute;left:420px;",
                width = "360px", height = "360px"))
- 
+    
+    
+
   })
   
+  observeEvent(input$create, {
+    req(input$list_name)
+    Sys.sleep(4)
+    ## session refresh
+    session$reload()
+  })
+
+
 }
 
 # Run the application 
