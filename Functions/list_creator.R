@@ -19,9 +19,6 @@ create_list <- function(listName = "vgs_list", spFilterType = "OT", description 
   if (description != "NULL") {
     description <- paste0("'", description, "'")
   }
-  if (definition != "NULL") {
-    definition <- paste0("'", definition, "'")
-  }
   if (CK_BestGuess != "NULL") {
     CK_BestGuess <- paste0("'", CK_BestGuess, "'")
   }
@@ -52,6 +49,10 @@ create_list <- function(listName = "vgs_list", spFilterType = "OT", description 
   if (SurrogateValue != "NULL") {
     SurrogateValue <- paste0("'", SurrogateValue, "'")
   }
+  if (SurrogateValue != "NULL") {
+    SurrogateValue <- paste0("'", SurrogateValue, "'")
+  }
+  
   ## End of variable manipulation ----------------------------------------------
   
   ## ID GUID for Creating List -------------------------------------------------

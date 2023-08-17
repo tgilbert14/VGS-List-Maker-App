@@ -24,7 +24,7 @@ ui <- fluidPage(theme = shinytheme("united"),collapsable = TRUE,
                     shiny::textInput(inputId = "list_name", label = "List Name", placeholder = "list name", value = NULL),
                     shiny::selectInput(inputId = "list_type", label = "List Type", choices = c("Normal list"=0, "Hierarchical list"=1), multiple = F, selected = F),
                     shiny::selectInput(inputId = "species_type", label = "Filter Type", choices = c("Other"="OT","GroundCover"="GC"), multiple = F, selected = F),
-                    shiny::textInput(inputId = "list_decription", label = "Description", value = NULL, placeholder = "type list decription here if needed"),
+                    shiny::textInput(inputId = "list_decription", label = "Description", value = "NULL", placeholder = "type list decription here if needed"),
                     shiny::actionButton(inputId = "create", label = "Create List")
                   ),
                   
