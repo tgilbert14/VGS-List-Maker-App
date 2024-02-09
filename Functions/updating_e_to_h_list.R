@@ -1,47 +1,50 @@
 ## update Exclusive list to H list ----
-## pop up to upload survey protocol
-survey<- choose.files(".vgsp", caption = "Upload VGS survey to update", multi = F)
 
-t<- read.delim(survey, header = F)
+## Must link list as exclusive in Survey first - 
+## then export it
+## then run this script ->
 
-## find all lists in survey uploaded
-row_list<- grep(";ListName", x = t$V1)
-lists_being_used<- t[row_list,]
-
-def_info<- gregexec("ListName",lists_being_used)
-s<- def_info[[1]][1]
-e<- def_info[[1]][2]
-def_list<- substr(lists_being_used,s+12,e-6)
-
-## then would have to select lists that are H to update
-
-## this is for testing -> selected list
-selected_list<- def_list
-
+## find out which list chosen was being used - get i value
+new_i<- grep(selected_list, lists_being_used)
 ## find the PK_SpList in 2 columns above each ListName found - row_list
-pk_look<- t[row_list-2,]
+pk_look<- t[row_list[new_i]-2,]
 
 pk_info<- gregexec("PK_SpList",pk_look)
 s<- pk_info[[1]][1]
 e<- pk_info[[1]][2]
-pk_sp<- substr(pk_look,s+13,e-6)
+pk_spList<- substr(pk_look,s+13,e-6)
 
-## then find location where Fk_Items are using the selected PK_SpList - pk_sp
-row_att<- grep("CDATA", x = t$V1)
-og_survey_att<- t[row_att,]
+## find location in survey where Fk_Items are using the selected PK_SpList - pk_sp
+row_attributes_stored<- grep("CDATA", x = t$V1)
+og_survey_att<- t[row_attributes_stored,]
 ## find template type below it
-find_at.1<- gregexec(pk_sp, og_survey_att)
-s1<- find_at.1[[1]][1]
+find_att_for_list<- gregexec(pk_spList, og_survey_att)
+s1<- find_att_for_list[[1]][1]
 
-temp_att<- substr(og_survey_att, s1, nchar(og_survey_att))
-## find next TemplateType:
-temp_loc<- gregexec("TemplateType:",temp_att)
-t1<- temp_loc[[1]][1]
-substr(temp_att, t1+13, t1+100)
-## then update E list to H list
+temp_attributes<- substr(og_survey_att, s1, nchar(og_survey_att))
+
+## sub out Exclusive for Hierarchical -> sub only does 1st instance
+temp_attributes<- sub("Exclusive","Hierarchical",temp_attributes)
+
+## put together temp attributes with original
+final_attributes<- paste0(substr(og_survey_att,0,s1-1),substr(temp_attributes,0,nchar(temp_attributes)))
+
+## re-attach final attributes with survey protocol
+t[row_attributes_stored,] <- final_attributes
+
+## Now need to update List IsHierarchical to True
+## find all lists in survey uploaded - 4 rows down from ListName
+t[row_list[new_i]+4,] <- sub("false", "true", t[row_list[new_i]+4,])
+
+## update H status in VGS -> 
+update_h_status <- paste0(
+  "UPDATE spList SET IsHierarchical = 1 WHERE ListName ='",selected_list,"'"
+)
+## link species to list
+dbExecute(mydb, update_h_status)
+
 
 ## then save as a survey to upload...
+write_delim(t, "test_final.vgsp", quote = "none", escape = "none", col_names = FALSE)
 
-write_delim(t, "test.vgsp", quote = "none", escape = "none", col_names = FALSE)
-
-
+## pop up survey location??

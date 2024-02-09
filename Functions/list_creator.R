@@ -376,6 +376,12 @@ where ListName = '", listName, "'")
       # list_data<<- list_data
     }
     
+    ## update list inserted to be 0 for H option - will update later
+    update_h_status <- paste0(
+      "UPDATE spList SET IsHierarchical = 0 WHERE PK_spList =",Pk_SpList
+    )
+    ## link species to list
+    dbExecute(mydb, update_h_status)
   }
   ## end of H list ----
   
