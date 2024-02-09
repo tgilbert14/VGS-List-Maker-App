@@ -32,8 +32,7 @@ ui <- fluidPage(theme = shinytheme("darkly"),collapsable = TRUE,
                     shiny::selectInput(inputId = "species_type", label = "Filter Type", choices = c("Other"="OT","GroundCover"="GC"), multiple = F, selected = F),
                     shiny::textInput(inputId = "list_decription", label = "Description", value = "NULL", placeholder = "type list decription here if needed"),
                     shiny::actionButton(inputId = "create", label = "Create List"),
-                    br(),
-                    shiny::actionButton(inputId = "create_2", label = "Update Survey")
+                    br()
                   ),
                   
                   # 
@@ -58,7 +57,7 @@ server <- function(input, session, output) {
                                label = "How would you like to order species by?",
                                choices = c("SpeciesName","CommonName"), selected = F)),
     #timer = 1000,
-    showConfirmButton = T
+    showConfirmButton = T, confirmButtonCol = "#00FF00"
   )
   
   observeEvent(input$create, {
@@ -80,9 +79,15 @@ server <- function(input, session, output) {
       ## order all lists in VGS
       source("Functions/ordering_list_queries_abc.R", local = T)
       
-      shinyalert("Stop! Connect your list to a survey as 'exclusive list'", text = "then export it before you move on to 'Update Survey'",
-                 confirmButtonText = "Go to 'Update Survey' Next", type = "info", animation = "slide-from-bottom")
+      shinyalert("Connect your list to a survey as an 'exclusive list'...", text = "then export it before you move on to 'Update Survey'",
+                 confirmButtonText = "Go to 'Update Survey' Next", type = "info",size = "l",
+                 animation = "slide-from-bottom", confirmButtonCol = "#00FF00")
       
+     
+      insertUI(selector = "#create",
+               where = "afterEnd",
+               ui = shiny::actionButton(inputId = "create_2", label = "Update Survey"))
+      removeUI(selector = "#create")
       #shinyalert(title = "DONE!!!", type = "info")
       print("Ordering Complete")
     })
