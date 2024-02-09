@@ -56,8 +56,7 @@ server <- function(input, session, output) {
     text = tagList(selectInput(inputId = "order_by",
                                label = "How would you like to order species by?",
                                choices = c("SpeciesName","CommonName"), selected = F)),
-    #timer = 1000,
-    showConfirmButton = T, confirmButtonCol = "#00FF00"
+    showConfirmButton = T, confirmButtonCol = "#00FF00", confirmButtonText = "next", size = "l"
   )
   
   observeEvent(input$create, {
@@ -80,7 +79,7 @@ server <- function(input, session, output) {
       source("Functions/ordering_list_queries_abc.R", local = T)
       
       shinyalert("Connect your list to a survey as an 'exclusive list'...", text = "then export it before you move on to 'Update Survey'",
-                 confirmButtonText = "Go to 'Update Survey' Next", type = "info",size = "l",
+                 confirmButtonText = "Got it!", type = "info",size = "l",
                  animation = "slide-from-bottom", confirmButtonCol = "#00FF00")
       
      
@@ -124,9 +123,9 @@ server <- function(input, session, output) {
     shinyalert("What List??",
                html = TRUE,
                text = tagList(selectInput(inputId = "list_convert",
-                                          label = "Select one...",
+                                          label = "Select which list needs to be updated to Hierarchical",
                                           choices = c("",unlist(list_names)), selected = F)),
-                                          confirmButtonText = "Sweet!", confirmButtonCol = "#00FF00")
+                                          confirmButtonText = "Thanks!", confirmButtonCol = "#00FF00")
     
     ## will override other "status" when starts
     output$status <- renderText({
@@ -140,19 +139,13 @@ server <- function(input, session, output) {
       ## close connections
       suppressWarnings(DBI::dbDisconnect(mydb))
       suppressWarnings(closeAllConnections())
-                       
+      
+      shinyalert("Process Complete", type = "success", immediate = TRUE,
+                 text = "Survey Updated... Import new version 'updated_survey' back into VGS!",
+                 showConfirmButton = FALSE, closeOnClickOutside = TRUE)
       print("Survey Updated!")
     })
   })
-  
-  
-  # observeEvent(input$create, {
-  #   req(input$list_name)
-  #   Sys.sleep(4)
-  #   ## session refresh
-  #   session$reload()
-  # })
-
 }
 
 # Run the application 
