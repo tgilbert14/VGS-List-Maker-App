@@ -3,23 +3,28 @@ library(shiny)
 library(shinythemes)
 library(shinydashboard)
 library(shinycssloaders)
+library(shinyalert)
 
 ## Create function to create GUID for VGS
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(theme = shinytheme("united"),collapsable = TRUE,
+ui <- fluidPage(theme = shinytheme("darkly"),collapsable = TRUE,
 
                 # Application title
-                titlePanel(" VGS List Maker", windowTitle = T),
-                
-                tags$style('.container-fluid {
-                             background-color: teal;
-              }'),
+                titlePanel(" VGS List Maker"),
+                br(),
+              
+              #   tags$style('.container-fluid {
+              #                background-color: teal;
+              # }'),
                 
                 # Sidebar with a slider input for number of bins 
                 sidebarLayout(
                   sidebarPanel(
+                    checkboxInput(inputId = "named_num",
+                                  label = "Named-Numeric List?",
+                                  value = F),
                     #shiny::fileInput(inputId = "data_file", label = "Choose a list to create", accept = ".csv", multiple = F, placeholder = "vgs_list.csv"),
                     shiny::textInput(inputId = "list_name", label = "List Name", placeholder = "list name", value = NULL),
                     shiny::selectInput(inputId = "list_type", label = "List Type", choices = c("Normal list"=0, "Hierarchical list"=1), multiple = F, selected = F),
@@ -38,78 +43,57 @@ ui <- fluidPage(theme = shinytheme("united"),collapsable = TRUE,
 
 # Define server logic required to draw a histogram
 server <- function(input, session, output) {
-  
+
   ## initial NULL value to stop spinner at start
   output$status <- renderText(NULL)
   
+  ## alert so know how to order list
+  shinyalert(
+    "VGS List Sorter",
+    html = TRUE,
+    text = tagList(selectInput(inputId = "order_by",
+                               label = "How would you like to order species by?",
+                               choices = c("SpeciesName","CommonName"), selected = F)),
+    #timer = 1000,
+    showConfirmButton = T
+  )
+  
   observeEvent(input$create, {
     req(input$list_name)
+    req(input$order_by)
+    
+    if (input$named_num == TRUE) {
+      shinyalert("Just Checking",
+                 text = "Named-Numeric .csv require 'CommonName' columns (odd columns) to be NUMERIC ONLY",
+                 type = "warning", closeOnEsc = T, confirmButtonText = "thanks", size = "s")
+    }
+    
     output$status <- renderText({
       
       source("Functions/VGS_functions_R.R", local = T)
       source("Functions/list_creator.R", local = T)
       
       create_list(listName = input$list_name, IsHierarchical = input$list_type, spFilterType = input$species_type, description = input$list_decription)
+
+      ## order all lists in VGS
+      source("Functions/ordering_list_queries_abc.R", local = T)
       
       ## close connections
-      DBI::dbDisconnect(mydb)
-      closeAllConnections()
+      suppressWarnings(DBI::dbDisconnect(mydb))
+      suppressWarnings(closeAllConnections())
       
-      if (nchar(input$list_name) == 0) {
-        print("No list name")
-      }
-      if (nchar(input$list_name) != 0 && tolower(input$list_name) != "chaz stinks") {
-        print(paste0("'",input$list_name, "' list created and inserted into VGS50.db -> ",Sys.Date()))
-      }
+      shinyalert(title = "DONE!!", type = "info")
+  
       
-      if (tolower(input$list_name) == "chaz stinks") {
-        print("Chaz is Mad!! Start Over and think about what you said.")
-      }
-      
-
     })
-    ## chaz sound board
-    if (nchar(input$list_name) == 0) {
-      insertUI(selector = "#create",
-               where = "afterEnd",
-               ui = tags$audio(src = "I hate the VGS team.mp3", type = "audio/mp3", autoplay = T, controls = NA, style="display:none;"))
-    }
-    if (nchar(input$list_name) > 1 && tolower(input$list_name) != "chaz stinks") {
-      insertUI(selector = "#create",
-               where = "afterEnd",
-               ui = tags$audio(src = "Nice.mp3", type = "audio/mp3", autoplay = T, controls = NA, style="display:none;"))
-    }
-
-    if (tolower(input$list_name) == "chaz stinks") {
-      insertUI(selector = "#create",
-               where = "afterEnd",
-               ui = tags$audio(src = "F VGS man.mp3", type = "audio/mp3", autoplay = T, controls = NA, style="display:none;"))
-      ## self destruct
-      removeUI(selector = "div:has(> #list_name)")
-      removeUI(selector = "div:has(> #species_type)")
-      removeUI(selector = "div:has(> #list_type)")
-      removeUI(selector = "div:has(> #list_decription)")
-      removeUI(selector = "div:has(> #create)")
-    }
-    
-    insertUI(selector = "#create",
-             where = "afterEnd",
-             ui=tags$img(
-               src = "https://portal.dev.vgs.arizona.edu/Content/Images/Headshots/csperry.jpg",
-               style = "position:absolute;left:420px;",
-               width = "360px", height = "360px"))
-    
-    
-
   })
   
-  observeEvent(input$create, {
-    req(input$list_name)
-    Sys.sleep(4)
-    ## session refresh
-    session$reload()
-  })
-
+  # observeEvent(input$create, {
+  #   req(input$list_name)
+  #   Sys.sleep(4)
+  #   ## session refresh
+  #   session$reload()
+  # })
 
 }
 

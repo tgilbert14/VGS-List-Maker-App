@@ -78,10 +78,32 @@ create_list <- function(listName = "vgs_list", spFilterType = "OT", description 
   dbExecute(mydb, insert_list)
   ## End of creating list ------------------------------------------------------
   
-  ## select file
+  ## select file and format ----
   data_file <- choose.files("Choose .csv with 2 cloumns (no labels)", multi = F)
   ## read file
   list_data <- read_csv(data_file, col_names = F, skip_empty_rows = T, show_col_types = FALSE)
+  ## formatting species name to Upper First letter - Title style
+  list_data$X2 <- str_to_title(list_data$X2)
+  ## getting rid of problematic Characters - X1
+  list_data$X1<- gsub("'","",list_data$X1)
+  list_data$X1<- gsub("&","-",list_data$X1)
+  list_data$X1<- gsub("$","",list_data$X1)
+  list_data$X1<- gsub("^","",list_data$X1)
+  list_data$X1<- gsub("$","",list_data$X1)
+  list_data$X1<- gsub("#","",list_data$X1)
+  list_data$X1<- gsub("!","",list_data$X1)
+  list_data$X1<- gsub("%","-per",list_data$X1)
+  list_data$X1<- gsub("  "," ",list_data$X1)
+  ## for X2
+  list_data$X2<- gsub("'","",list_data$X2)
+  list_data$X2<- gsub("&","-",list_data$X2)
+  list_data$X2<- gsub("$","",list_data$X2)
+  list_data$X2<- gsub("^","",list_data$X2)
+  list_data$X2<- gsub("$","",list_data$X2)
+  list_data$X2<- gsub("#","",list_data$X2)
+  list_data$X2<- gsub("!","",list_data$X2)
+  list_data$X2<- gsub("%","percent",list_data$X2)
+  list_data$X2<- gsub("  "," ",list_data$X2)
   
   ## adjusting Filter and species GUIDs depending on type of list
   if (spFilter == "OT") { ## Other List
@@ -92,12 +114,14 @@ create_list <- function(listName = "vgs_list", spFilterType = "OT", description 
     list <- "GC"
     pre_guid <- "G"
   }
+  # end of formatting ----
   
-  ## ID GUID for species insert ------------------------------------------------
+  ## Inserting species ----
+  ## ID GUID for species insert
   Pk_Species <- GUID(type = "sp", number_of_GUIDS = nrow(list_data))
   Pk_Species <- paste0(pre_guid, Pk_Species)
 
-  ## ID GUID for species links insert ------------------------------------------
+  ## ID GUID for species links insert
   Pk_SpListLink <- GUID(type = "pk", number_of_GUIDS = nrow(list_data))
   
   i <- 1
@@ -132,7 +156,7 @@ where ListName = '", listName, "'")
       ## insert species into species table
       dbExecute(mydb, insert_sp)
       
-      ## update list_data to attack PK_Species
+      ## update list_data to attach PK_Species
       suppressWarnings(list_data$PK_Species[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
       ## End of species insert -------------------------------------------------
       
@@ -147,7 +171,6 @@ where ListName = '", listName, "'")
       ## link species to list
       dbExecute(mydb, insert_sp_link)
     }
-    
     
     ## if species exists then use it instead of making a new one... use species_check
     if (nrow(species_check) == 1) {
@@ -170,39 +193,13 @@ where ListName = '", listName, "'")
     
     ## go to next row/species in list
     i <- i + 1
-  } ## End of species insert links ---------------------------------------------
+  } ## End of species insert ---------------------------------------------
   
-  # Pk_SpList <<- Pk_SpList
-  
-  # stop("stop here for now to test... before H")
-  ## testting
-  # list_data<- check
-  # listName<- "list4"
-  # spFilter<- "OT"
-  # SyncKey=33
-  # SyncState=4
-  # CK_BestGuess="NULL"
-  # NewSynonym="NULL"
-  # Family="NULL"
-  # Habit="NULL"
-  # Duration="NULL"
-  # Nativity="NULL"
-  # Description_sp="NULL"
-  # CK_ParentSpecies="NULL"
-  # Qualifier="NULL"
-  # SurrogateValue="NULL"
-  # IsDefault=0
-  # Weight="NULL"
-  
-  # list_data_b<<- list_data
-  
-  ## if H list
+  ## if H list ----
   if (IsHierarchical == 1) {
     
     ## update list IsH to 1 at some point ----
     IsHierarchical <- 0
-    ## Need to attach to questions
-    ## ---------------------------------------
     
     original_list_length <- ncol(list_data)
     
@@ -219,7 +216,7 @@ where ListName = '", listName, "'")
         pre_guid <- "G"
       }
       
-      # ## ID GUID for species insert ------------------------------------------
+      # ## ID GUID for species insert
       Pk_Species <- GUID(type = "sp", number_of_GUIDS = nrow(list_data))
       Pk_Species <- paste0(pre_guid, Pk_Species)
       ## adding new species to species table - then linking them to list w/Parent
@@ -259,32 +256,32 @@ where ListName = '", listName, "'")
             dbExecute(mydb, insert_sp)
             
             if (m_over == 2) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_2[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
             if (m_over == 4) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_4[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
             if (m_over == 6) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_6[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
             if (m_over == 8) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_8[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
             if (m_over == 10) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_10[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
             if (m_over == 12) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_12[i] <- substr(Pk_Species[i], 1, nchar(Pk_Species[i]) - 1))
             }
-            ## End of species insert ---------------------------------------------
+            ## End of species insert
             
-            ## ID GUID for species links insert ----------------------------------
+            ## ID GUID for species links insert
             Pk_SpListLink <- GUID(type = "pk", number_of_GUIDS = nrow(list_data))
             
             ## always looks at the last column (pk gets added each time loop happens)
@@ -302,90 +299,97 @@ where ListName = '", listName, "'")
             dbExecute(mydb, insert_sp_link)
           }
           
+          ## stops app if duplicate species!!
           if (nrow(species_check) > 1) stop(paste0("Found duplicate species '", species_check[[3]], "' - '", species_check[[2]], "' not sure which one to use : Col ", m_over))
           
           ## if species exists then use it instead of making a new one... use species_check
           if (nrow(species_check) == 1) {
             
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             # suppressWarnings(list_data$PK_Species[i] <- substr(species_check$PK_Species[[1]],1,nchar(species_check$PK_Species[[1]])))
             
             if (m_over == 2) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_2[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
             if (m_over == 4) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_4[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
             if (m_over == 6) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_6[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
             if (m_over == 8) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_8[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
             if (m_over == 10) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_10[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
             if (m_over == 12) {
-              ## update list_data to attack PK_Species
+              ## update list_data to attach PK_Species
               suppressWarnings(list_data$PK_Species_12[i] <- substr(species_check$PK_Species[[1]], 1, nchar(species_check$PK_Species[[1]])))
             }
-            ## End of species insert ---------------------------------------------
+            ## End of species insert
             
-            # ## always looks at the last column (pk gets added each time loop happens)
-            # CK_ParentSpecies <- paste0("'",list_data[i,][ncol(list_data)-1],"'")
-            
-            #         insert_sp_link <- paste0("INSERT INTO spListLink(
-            # PK_SpListLink, FK_SpList, FK_Species, CK_ParentSpecies, Qualifier,
-            # SurrogateValue, IsDefault, Weight, SyncKey,SyncState) VALUES(",
-            #                                  Pk_SpListLink[i],",",Pk_SpList,",'",species_check$PK_Species[[1]],"',",CK_ParentSpecies,",",
-            #                                  Qualifier,",",SurrogateValue,",",IsDefault,",",Weight,",",
-            #                                  SyncKey,",",SyncState,")")
-            #         ## link species to list
-            #         dbExecute(mydb, insert_sp_link)
           }
         }
+        
         
         ## if NA - still need to fill in value for table
         if (is.na(list_data[i, ][[2 + m_over]])) {
           if (m_over == 2) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_2[i] <- NA)
           }
           if (m_over == 4) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_4[i] <- NA)
           }
           if (m_over == 6) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_6[i] <- NA)
           }
           if (m_over == 8) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_8[i] <- NA)
           }
           if (m_over == 10) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_10[i] <- NA)
           }
           if (m_over == 12) {
-            ## update list_data to attack PK_Species
+            ## update list_data to attach PK_Species
             suppressWarnings(list_data$PK_Species_12[i] <- NA)
           }
         }
         
         ## moving on to next row/species in list
         i <- i + 1
-      } ## End of species insert links -----------------------------------------
+      } ## End of species insert links
+      
       ## moving to next set columns / parent-children species
       m_over <- m_over + 2
       
       # list_data<<- list_data
     }
+    
   }
+  ## end of H list ----
+  
+  ## if Named Numeric
+  if (input$named_num == TRUE) {
+    
+    ## update species is list to be named-numeric
+    update_sp <- paste0("Update spList
+      Set FK_SubType = x'a444fb804d72d1429ac8e378d9d4e27d'
+      Where PK_SpList = ",Pk_SpList)
+    
+    ## insert species into species table
+    dbExecute(mydb, update_sp)
+  }
+  
 }
 ## End of List creation --------------------------------------------------------
